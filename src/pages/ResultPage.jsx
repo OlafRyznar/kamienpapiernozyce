@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import rockIcon from '../assets/icon-rock.svg';
 import paperIcon from '../assets/icon-paper.svg';
@@ -8,15 +8,44 @@ import logo from '../assets/logo.svg';
 function ResultPage({ score, setScore }) {
   const location = useLocation();
   const { userChoice, prevScore } = location.state || {};
+  const [houseChoice, setHouseChoice] = useState(null);
+  const [result, setResult] = useState(null);
+  const [scoreUpdated, setScoreUpdated] = useState(false);
 
   const getRandomChoice = () => {
     const choices = [rockIcon, paperIcon, scissorsIcon];
     return choices[Math.floor(Math.random() * choices.length)];
   };
 
-  const houseChoice = getRandomChoice();
+  useEffect(() => {
+    const choice = getRandomChoice();
+    setHouseChoice(choice);
+    const winner = determineWinner(userChoice, choice);
+    setResult(winner);
+  }, [userChoice]);
 
-  const determineWinner = () => {
+  useEffect(() => {
+    if (result !== null && !scoreUpdated) {
+      console.log("Poprzedni wynik:", prevScore);
+      console.log("Obency wynik przed aktualizacją::", score);
+
+      if (result === 'win') {
+        setScore(prevScore => {
+          const newScore = prevScore + 1;
+          console.log("Nowy wynik po wygranej:", newScore);
+          return newScore;
+        });
+      } else if (result === 'lose') {
+        setScore(0);
+      }
+      setScoreUpdated(true); // Zaktualizowano wynik
+    }
+  }, [result, setScore, prevScore, score, scoreUpdated]);
+
+  const determineWinner = (userChoice, houseChoice) => {
+    console.log("Wybór gracza:", userChoice);
+    console.log("Wybór przeciwnika:", houseChoice);
+
     if (userChoice === houseChoice) return 'draw';
     if (
       (userChoice === rockIcon && houseChoice === scissorsIcon) ||
@@ -27,16 +56,6 @@ function ResultPage({ score, setScore }) {
     }
     return 'lose';
   };
-
-  const result = determineWinner();
-
-  useEffect(() => {
-    if (result === 'win') {
-      setScore(prevScore => prevScore + 1);
-    } else if (result === 'lose') {
-      setScore(0);
-    }
-  }, [result, setScore, prevScore]);
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-blue-900 to-gray-800 flex flex-col relative">
@@ -69,7 +88,7 @@ function ResultPage({ score, setScore }) {
           <div className="text-center">
             <div className="text-white text-xl font-semibold mb-4">THE HOUSE PICKED</div>
             <div className="bg-white p-12 rounded-full flex items-center justify-center border-[20px] border-red-600">
-              <img src={houseChoice} alt="House Choice" className="w-48 h-48 object-contain" />
+              {houseChoice && <img src={houseChoice} alt="House Choice" className="w-48 h-48 object-contain" />}
             </div>
           </div>
         </div>

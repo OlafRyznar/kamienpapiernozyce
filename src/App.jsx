@@ -12,6 +12,7 @@ function Home({ score }) {
   const navigate = useNavigate();
 
   const handleChoice = (choice) => {
+    console.log("Wybór gracza:", choice);
     navigate('/result', { state: { userChoice: choice, prevScore: score } });
   };
 
